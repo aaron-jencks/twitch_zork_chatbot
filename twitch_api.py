@@ -12,6 +12,19 @@ chat_msg_re = re.compile(r"^:\w+!\w+@\w+\.tmi\.twitch\.tv PRIVMSG #\w+ :")
 
 
 def chat(sock: socket.socket, channel: str, msg: str):
+    if len(msg) > 500:
+        msg_count = len(msg) / 500 + 1
+        iter = 1
+        while iter <= msg_count:
+            sock.send('PRIVMSG {} :Part {} of {}: {}\r\n'.format(iter, msg_count, channel,
+                                                                 msg[:500] if len(msg) > 500 else msg).encode('utf-8'))
+            iter += 1
+            if len(msg) > 500:
+                msg = msg[500:]
+                
+            time.sleep(1 / settings.bot_rate)
+        return
+
     sock.send('PRIVMSG {} :{}\r\n'.format(channel, msg).encode('utf-8'))
     time.sleep(1 / settings.bot_rate)
 

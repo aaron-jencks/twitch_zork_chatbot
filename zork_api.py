@@ -40,6 +40,6 @@ if __name__ == '__main__':
     print('Welcome to Zork!')
     cmd = 'look'
     while cmd != 'quit':
-        resps = find_statuses(send_command('iggy', cmd, 0))
+        resps = find_statuses(send_command('iggy', cmd))
         print(resps[-1])
         cmd = input('>>> ').lower()
