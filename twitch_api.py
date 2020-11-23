@@ -9,22 +9,11 @@ import settings
 twitch_host = 'irc.chat.twitch.tv'
 twitch_port = 6667
 chat_msg_re = re.compile(r"^:\w+!\w+@\w+\.tmi\.twitch\.tv PRIVMSG #\w+ :")
+max_message_size = 250
 
 
 def chat(sock: socket.socket, channel: str, msg: str):
-    if len(msg) > 500:
-        msg_count = len(msg) / 500 + 1
-        iter = 1
-        while iter <= msg_count:
-            sock.send('PRIVMSG {} :Part {} of {}: {}\r\n'.format(iter, msg_count, channel,
-                                                                 msg[:500] if len(msg) > 500 else msg).encode('utf-8'))
-            iter += 1
-            if len(msg) > 500:
-                msg = msg[500:]
-                
-            time.sleep(1 / settings.bot_rate)
-        return
-
+    print("Sending message: {}".format(msg))
     sock.send('PRIVMSG {} :{}\r\n'.format(channel, msg).encode('utf-8'))
     time.sleep(1 / settings.bot_rate)
 
@@ -73,6 +62,23 @@ class TwitchRPBot:
             time.sleep(1 / settings.bot_rate)
 
     def chat(self, msg: str):
+        if len(msg) > max_message_size:
+            msg_count = len(msg) // max_message_size + 1
+            iter = 1
+            while iter <= msg_count:
+                prepart = "Part {}/{} ".format(iter, msg_count)
+                print("Sending message: {}{}".format(prepart, msg[:(max_message_size - len(prepart) - 1)]
+                if len(msg) > (max_message_size - len(prepart) - 1)
+                else msg))
+
+                chat(self.s, self.channel, '{}{}'.format(prepart,
+                                                         msg[:(max_message_size - len(prepart) - 1)]
+                                                         if len(msg) > (max_message_size - len(prepart) - 1)
+                                                         else msg))
+                iter += 1
+                if len(msg) > (max_message_size - len(prepart) - 1):
+                    msg = msg[(max_message_size - len(prepart) - 1):]
+            return
         chat(self.s, self.channel, msg)
 
     def run(self):

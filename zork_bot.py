@@ -28,12 +28,14 @@ class ZorkBot(TwitchRPBot):
 
     def refresh(self, user: str, args: List[str]):
         print("Refreshing player")
+        if user not in self.players:
+            self.players[user] = -1
         resp = find_statuses(send_command(user, 'look'))[-1]
         self.chat('@{} {}'.format(user, resp))
 
     def do(self, user: str, args: List[str]):
         if user not in self.players:
-            self.start(user, args)
+            self.players[user] = -1
         cmd = ' '.join(args).strip()
         print("Executing a command {}".format(cmd))
         resp = find_statuses(send_command(user, cmd))[-1]
